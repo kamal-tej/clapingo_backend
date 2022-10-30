@@ -2,8 +2,8 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const SECRET_KEY = process.env.SECRET_KEY;
-console.log()
 
+//Validation
 const authenticate = (request, response, next) =>{
     let jwtToken;
     const header = request.headers["authorization"];
@@ -23,8 +23,8 @@ const authenticate = (request, response, next) =>{
             }
             else{
                 request.ID = payload.ID;
-                console.log("Successfully verified",request.ID);
-                next();
+                console.log("Successfully verified");
+                next(); //upon success
             }
         })
     }

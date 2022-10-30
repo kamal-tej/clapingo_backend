@@ -20,6 +20,7 @@ const register = async (request, response)=>{
                 rollno: rollNo ,name,password: hashedPassword,gender
             }
         );
+        response.status(201);
         response.send("inserted successfully");
     }
     catch(error){
@@ -36,19 +37,19 @@ const login = async (request, response)=>{
         const ans = await Student.findOne(query);
         const ID = ans._id;
         if( ans === undefined ){
-            response.send(400);
+            response.status(400);
             response.send({ errorMsg : "Invalid user" });
         }
         else{
             const checkedPassword = await bcrypt.compare(password, ans.password);
             if(!checkedPassword){
-                response.send(400);
+                response.status(400);
                 response.send({ errorMsg : "Invalid Password"});
             }
             else{
                 const payload = { ID };
                 const jwtToken = jwt.sign(payload, SECRET_KEY);
-                response.send({jwtToken});
+                response.send({jwtToken}); //sends jwt token as response
             }
         }
 
@@ -61,38 +62,73 @@ const login = async (request, response)=>{
 
 //List Teachers
 const displayTeachers = async (request, response)=>{
+    try{
+        const teachers_list = await Teacher.find();
+        response.send(teachers_list);
+    }
+    catch(error){
+        console.log(error.message);
+    }
 
-    const teachers_list = await Teacher.find();
-    response.send(teachers_list);
-    console.log(teachers_list.length);
+}
+
+//Display favourite teachers
+const displayFavouriteTeachers = async (request,response)=>{
+    try{
+        const studentID = request.ID;
+        const favList = await Favourite.find({student_id: studentID});
+        response.status(200);
+        response.send(favList); //sends favourite teacher details
+    }
+    catch(error){
+        console.log(error.message);
+    }
 }
 
 
 //Adding Favourite teachers
-const addFavourites = async (request, response, next) => {
-    const {favList} = request.body;
-    const favouriteList = [];
-    const student_id = request.ID;
-
-    const ans = await Favourite.find();
-    const favIds = ans.map(x => x.teacher_id.valueOf())
-
-
-    const uncommon = favList.filter(teacherId => !favIds.includes(teacherId));
-    console.log(uncommon);
+const addToFavourites = async (request, response, next) => {
+    try{
+        const {favList} = request.body;
+        const favouriteList = [];
+        const studentID = request.ID;
     
-
-    uncommon.forEach(teacher => {
-        favouriteList.push({
-            student_id: student_id,
-            teacher_id: teacher
+        const ans = await Favourite.find({student_id: studentID});
+        const favIds = ans.map(x => x.teacher_id.valueOf())
+    
+    
+        const uncommon = favList.filter(teacherID => !favIds.includes(teacherID));
+    
+        uncommon.forEach(teacherID => {
+            favouriteList.push({
+                student_id: studentID,
+                teacher_id: teacherID
+            });
         });
-    });
 
-    console.log(favouriteList);
-    await Favourite.insertMany(favouriteList);
-    response.status(200).send("added to favourites succesfully");
+        await Favourite.insertMany(favouriteList);
+        response.status(200);
+        response.send("added to favourites succesfully");
+    }
+    catch(error){
+        console.log(error.message);
+    }
+};
+
+//Deleting Favourite teachers
+const deleteFromFavourites = async (request, response, next) => {
+    try{
+        const {delList} = request.body;
+        const deleteArray = [];
+        const studentID = request.ID;
+        await Favourite.deleteMany({student_id: studentID, teacher_id : {$in : delList}});
+        response.status(200);
+        response.send("deleted teachers from favourites succesfully");
+    }
+    catch(error){
+        console.log(error.message);
+    }
 };
 
 
-module.exports = { register, login, displayTeachers, addFavourites };
+module.exports = { register, login, displayTeachers, addToFavourites, deleteFromFavourites, displayFavouriteTeachers };

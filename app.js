@@ -3,6 +3,7 @@ const app = express();
 const mongoose = require("mongoose");
 const studentRouter = require("./Routes/Student");
 const teacherRouter = require("./Routes/Teacher");
+const filtersRouter = require("./Routes/Filters");
 require("dotenv").config();
 
 const username = process.env.username;
@@ -22,3 +23,4 @@ app.listen(8080, ()=> console.log("Server is running on port 8080"));
 
 app.use("/student", studentRouter );
 app.use("/teacher", teacherRouter);
+app.use("/filters", filtersRouter);

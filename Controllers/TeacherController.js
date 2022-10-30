@@ -16,6 +16,7 @@ const register = async (request, response)=>{
             }
         );
         response.send("inserted successfully");
+        response.status(201);
     }
     catch(error){
         console.log(error.message);
@@ -32,13 +33,13 @@ const login = async (request, response)=>{
         const ans = await Teacher.findOne(query);
         const ID = ans._id;
         if( ans === undefined ){
-            response.send(400);
+            response.status(400);
             response.send({ errorMsg : "Invalid user" });
         }
         else{
             const checkedPassword = await bcrypt.compare(password, ans.password);
             if(!checkedPassword){
-                response.send(400);
+                response.status(400);
                 response.send({ errorMsg : "Invalid Password"});
             }
             else{
@@ -54,4 +55,4 @@ const login = async (request, response)=>{
     }
 }
 
-module.exports = { register, login }
+module.exports = { register, login,  }
